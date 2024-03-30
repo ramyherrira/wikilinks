@@ -2,6 +2,9 @@
 
 namespace RamyHerrira\Wikilinks;
 
+use RoachPHP\Roach;
+use RoachPHP\Spider\Configuration\Overrides;
+use RoachPHP\Spider\Middleware\MaximumCrawlDepthMiddleware;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -37,11 +40,26 @@ class GameCommand extends Command
 
         $output->writeln("\n========================================\n");
 
+
         $output->writeln('<comment>Fetching article B...</comment>');
-        [
-            'title' => $titleB,
-            'url' => $urlB,
-        ] = $this->wiki->getRandomPage();
+
+        $items = Roach::collectSpider(
+            MySpider::class,
+            new Overrides(
+                startUrls: [$urlA],
+                spiderMiddleware: [
+                    [
+                        MaximumCrawlDepthMiddleware::class,
+                        ['maxCrawlDepth' => $linksCout = rand(2, 12)],
+                    ],
+                ]
+            ),
+        );
+
+        $item = end($items);
+
+        $titleB = $item->get('title');
+        $urlB = $item->get('url');
         $output->writeln("<info>Article B</info>: <href=$urlB>$titleB</>");
 
         $output->writeln("\n========================================");
@@ -50,11 +68,13 @@ class GameCommand extends Command
         $question = new Question(
             "<question>Can you guess how many links is Article A away from Article B ?</question>\n>"
         );
-        
-        while (true) {
+
+        $guess = -1;
+        while ($linksCout != $guess) {
             $guess = $helper->ask($input, $output, $question);
         }
 
+        $output->writeln('<success>Yeah ! You got it right !</success>');
 
         return Command::SUCCESS;
     }

@@ -6,7 +6,8 @@
         "symfony/console": "^6.4",
         "symfony/dom-crawler": "^6.4",
         "guzzlehttp/guzzle": "^7.8",
-        "symfony/css-selector": "^6.4"
+        "symfony/css-selector": "^6.4",
+        "roach-php/core": "^3.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
