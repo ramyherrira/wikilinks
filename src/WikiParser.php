@@ -25,6 +25,20 @@ class WikiParser
         ];
     }
 
+    public function listArticles($url): array
+    {
+        $response = $this->getClient()->get($url);
+
+        $crawler = new Crawler($response->getBody(), $url);
+
+        return array_map(
+            fn ($l) => $l->getUri(),
+            $crawler
+                ->filter('#bodyContent p a[href^="/wiki/"]')
+                ->links()
+        );
+    }
+
     protected function getClient()
     {
         return $this->client ?? $this->client = new Client([
