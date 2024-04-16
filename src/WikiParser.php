@@ -18,9 +18,17 @@ class WikiParser
         $crawler = new Crawler($response->getBody());
 
         $title = $crawler->filter('#firstHeading > span, i')->text();
+        $text = $crawler->filter("#mw-content-text div p")->extract(['_text']);
 
+        var_dump([
+            'empty' => trim($text[0]),
+            'sum' => $text[1],
+        ]);
+
+        // @todo create Article object
         return [
             'title' => $title,
+            'description' => empty(trim($text[0])) ? $text[1] : $text[0],
             'url' => $response->getHeader(\GuzzleHttp\RedirectMiddleware::HISTORY_HEADER)[0],
         ];
     }

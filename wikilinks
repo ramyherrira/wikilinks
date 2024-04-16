@@ -3,9 +3,17 @@
 
 require __DIR__.'/vendor/autoload.php';
 
+use RamyHerrira\Wikilinks\Container;
+use RoachPHP\Roach;
 use Symfony\Component\Console\Application;
 
+$container = new Container();
+
+// @todo Get application from container
 $application = new Application();
+
+
+Roach::useContainer($container);
 
 $application->add(new \RamyHerrira\Wikilinks\GameCommand());
 $application->add(new \RamyHerrira\Wikilinks\GuessCommand());
