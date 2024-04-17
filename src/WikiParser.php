@@ -1,8 +1,8 @@
 <?php
 
 namespace RamyHerrira\Wikilinks;
+
 use GuzzleHttp\Client;
-use Psr\Http\Client\ClientInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 class WikiParser
@@ -13,24 +13,16 @@ class WikiParser
     {   
         $response = $this->getClient()->get('https://en.wikipedia.org/wiki/Special:Random');
         
-        //var_dump($response->getHeader(\GuzzleHttp\RedirectMiddleware::HISTORY_HEADER)[0]);
-
         $crawler = new Crawler($response->getBody());
 
         $title = $crawler->filter('#firstHeading > span, i')->text();
         $text = $crawler->filter("#mw-content-text div p")->extract(['_text']);
 
-        var_dump([
-            'empty' => trim($text[0]),
-            'sum' => $text[1],
-        ]);
-
-        // @todo create Article object
-        return [
+        return new Article([
             'title' => $title,
             'description' => empty(trim($text[0])) ? $text[1] : $text[0],
             'url' => $response->getHeader(\GuzzleHttp\RedirectMiddleware::HISTORY_HEADER)[0],
-        ];
+        ]);
     }
 
     public function listArticles($url): array

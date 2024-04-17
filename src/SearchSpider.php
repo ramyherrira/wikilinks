@@ -16,7 +16,7 @@ class SearchSpider extends BasicSpider
         $text = $response
             ->filter("#mw-content-text div p")
             ->extract(['_text']);
-        
+
         yield $this->item([
             'title' => $response->filter('#firstHeading > span, i')->text(),
             'description' => empty(trim($text[0])) ? $text[1] : $text[0],

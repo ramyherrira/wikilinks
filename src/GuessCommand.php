@@ -4,6 +4,7 @@ namespace RamyHerrira\Wikilinks;
 
 use Psr\Log\LoggerInterface;
 use RoachPHP\Extensions\LoggerExtension;
+use RoachPHP\ItemPipeline\ItemInterface;
 use RoachPHP\Roach;
 use RoachPHP\Spider\Configuration\Overrides;
 use RoachPHP\Spider\Middleware\MaximumCrawlDepthMiddleware;
@@ -35,67 +36,56 @@ class GuessCommand extends Command
 
         $output->writeln('Wikilinks starting...');
 
-        $output->writeln('<comment>Fetching article A...</comment>');
-        // @todo Article value object
-        [
-            'title' => $titleA,
-            'description' => $descriptionA,
-            'url' => $urlA,
-        ] = $this->wiki->getRandomPage();
-        $output->writeln("<info>Article A</info>: <href=$urlA>$titleA</>");
-        
+        $articleA = $this->fetchArticleA($output);
+
         $confirmationQuestion = new ConfirmationQuestion(
             "<question>Do you want to starting with this article ?</question>\n\n>",
             false
         );
 
         while (! $helper->ask($input, $output, $confirmationQuestion)) {
-            $output->writeln('<comment>Fetching article A...</comment>');
-            [
-                'title' => $titleA,
-                'description' => $descriptionA,
-                'url' => $urlA,
-            ] = $this->wiki->getRandomPage();
-            $output->writeln("<info>Article A</info>: <href=$urlA>$titleA</>");
+            $articleA = $this->fetchArticleA($output);
         }
-        $output->writeln("<comment>Description</comment>:\n{$descriptionA}");
+        $output->writeln("<comment>Description</comment>:\n{$articleA->getDescription()}");
 
         $output->writeln("\n========================================\n\n\n");
 
 
         $output->writeln('<comment>Searching for the B article...</comment>');
 
-        $items = Roach::collectSpider(
-            SearchSpider::class,
-            new Overrides(
-                startUrls: [$urlA],
-                spiderMiddleware: [
-                    [
-                        MaximumCrawlDepthMiddleware::class,
-                        ['maxCrawlDepth' => $clickCount = 4],
-                    ],
-                ],
-            ),
-        );
+        // $items = Roach::collectSpider(
+        //     SearchSpider::class,
+        //     new Overrides(
+        //         startUrls: [$articleA->getUrl()],
+        //         spiderMiddleware: [
+        //             [
+        //                 MaximumCrawlDepthMiddleware::class,
+        //                 ['maxCrawlDepth' => $clickCount = 4],
+        //             ],
+        //         ],
+        //     ),
+        // );
 
 
-        $item = $items[count($items) - 1];
+        // $item = $items[count($items) - 1];
 
-        $titleB = $item->get('title');
-        $urlB = $item->get('url');
+        $articleB = $this->crawlForARandomArtcle($articleA, $clickCount = 2);
+
+        $titleB = $articleB->getTitle();
+        $urlB = $articleB->getUrl();
         $output->writeln("<info>Article B</info>: <href=$urlB>$titleB</>");
-        $output->writeln("<comment>Description</comment>:\n{$item->get('description')}");
+        $output->writeln("<comment>Description</comment>:\n{$articleB->getDescription()}");
 
-        $output->writeln("\n===================You have {$clickCount} tries==============");
-        $output->writeln("=================================================\n\n\n");
+        $output->writeln("\n===================Try to make in {$clickCount} tries==============");
+        $output->writeln("=======================================================\n\n\n");
 
-        $links = $this->wiki->listArticles($urlA);
+        $links = $this->wiki->listArticles($articleA->getUrl());
 
         $link = $this->askForWhichArticle($helper, $input, $output, $links);
 
         while ($link !== $urlB) {
             $links = $this->wiki->listArticles($link);
-            $links[] = $urlA;
+            $links[] = $articleA->getUrl();
 
             // @todo suggestion autocomplete ? too many articles
             $link = $this->askForWhichArticle($helper, $input, $output, $links);
@@ -120,5 +110,41 @@ class GuessCommand extends Command
         $output->writeln('You have just selected: ' . $article);
 
         return $article;
+    }
+
+    protected function fetchArticleA($output): Article
+    {
+        $output->writeln('<comment>Fetching article A...</comment>');
+
+        $articleA = $this->wiki->getRandomPage();
+
+        $output->writeln("<info>Article A</info>: <href={$articleA->getUrl()}>{$articleA->getTitle()}</>");
+
+        return $articleA;
+    }
+
+    protected function crawlForARandomArtcle(Article $article, int $clickCount = 2): Article
+    {
+        $items = Roach::collectSpider(
+            SearchSpider::class,
+            new Overrides(
+                startUrls: [$article->getUrl()],
+                spiderMiddleware: [
+                    [
+                        MaximumCrawlDepthMiddleware::class,
+                        ['maxCrawlDepth' => $clickCount + 1],
+                    ],
+                ],
+            ),
+        );
+
+
+        $item = $items[count($items) - 1];
+
+        return new Article([
+            'title' => $item->get('title'),
+            'url' => $item->get('url'),
+            'description' => $item->get('description'),
+        ]);
     }
 }
