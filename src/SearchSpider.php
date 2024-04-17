@@ -7,6 +7,8 @@ use RoachPHP\Spider\BasicSpider;
 
 class SearchSpider extends BasicSpider
 {
+    public array $extensions = [];
+
      public function parse(Response $response): \Generator
     {
         $pages = $response

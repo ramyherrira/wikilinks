@@ -6,6 +6,7 @@ require __DIR__.'/vendor/autoload.php';
 use RamyHerrira\Wikilinks\Container;
 use RoachPHP\Roach;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 
 $container = new Container();
 
@@ -13,7 +14,9 @@ $application = new Application();
 
 Roach::useContainer($container);
 
-$application->add(new \RamyHerrira\Wikilinks\GameCommand());
 $application->add(new \RamyHerrira\Wikilinks\GuessCommand());
 
-$application->run();
+$application->run(
+    null,
+    $container->get(ConsoleOutputInterface::class),
+);

@@ -24,7 +24,8 @@ use RoachPHP\Scheduling\Timing\ClockInterface;
 use RoachPHP\Scheduling\Timing\SystemClock;
 use RoachPHP\Shell\Resolver\NamespaceResolverInterface;
 use RoachPHP\Shell\Resolver\StaticNamespaceResolver;
-use RoachPHP\Testing\FakeLogger;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -38,6 +39,11 @@ final class Container implements ContainerInterface
     public function __construct()
     {
         $this->container = (new BaseContainer())->delegate(new ReflectionContainer());
+
+        $this->container->add(
+            ConsoleOutputInterface::class,
+            static fn () => new ConsoleOutput(),
+        );
 
         $this->registerRoachBindings();
     }
@@ -58,15 +64,10 @@ final class Container implements ContainerInterface
             ContainerInterface::class,
             $this->container,
         );
-        // $this->container->addShared(
-        //     LoggerInterface::class,
-        //     static fn () => (new Logger('roach'))->pushHandler(new StreamHandler('php://stdout')),
-        // );
-        $this->container->add(
-            LoggerInterface::class,
-            // FakeLogger::class,
-            static fn () => new Logger((new MonologLogger('wikilinks'))->pushHandler(new StreamHandler('php://stdout'))),
-        );
+
+        $output = $this->container->get(ConsoleOutputInterface::class);
+        $this->container->add(LoggerInterface::class, static fn () => new SymfonyLogger($output));
+
         $this->container->addShared(EventDispatcher::class, EventDispatcher::class);
         $this->container->addShared(EventDispatcherInterface::class, EventDispatcher::class);
         $this->container->add(ClockInterface::class, SystemClock::class);

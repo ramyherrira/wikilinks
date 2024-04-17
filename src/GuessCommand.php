@@ -2,13 +2,10 @@
 
 namespace RamyHerrira\Wikilinks;
 
-use Psr\Log\LoggerInterface;
-use RoachPHP\Extensions\LoggerExtension;
-use RoachPHP\ItemPipeline\ItemInterface;
+
 use RoachPHP\Roach;
 use RoachPHP\Spider\Configuration\Overrides;
 use RoachPHP\Spider\Middleware\MaximumCrawlDepthMiddleware;
-use RoachPHP\Testing\FakeLogger;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\QuestionHelper;
@@ -51,25 +48,11 @@ class GuessCommand extends Command
         $output->writeln("\n========================================\n\n\n");
 
 
-        $output->writeln('<comment>Searching for the B article...</comment>');
-
-        // $items = Roach::collectSpider(
-        //     SearchSpider::class,
-        //     new Overrides(
-        //         startUrls: [$articleA->getUrl()],
-        //         spiderMiddleware: [
-        //             [
-        //                 MaximumCrawlDepthMiddleware::class,
-        //                 ['maxCrawlDepth' => $clickCount = 4],
-        //             ],
-        //         ],
-        //     ),
-        // );
-
-
-        // $item = $items[count($items) - 1];
+        $output->writeln("<comment>Searching for the B article...</comment>\n\n");
 
         $articleB = $this->crawlForARandomArtcle($articleA, $clickCount = 2);
+
+        $output->writeln("\n\n\n========================================\n");
 
         $titleB = $articleB->getTitle();
         $urlB = $articleB->getUrl();
@@ -134,6 +117,9 @@ class GuessCommand extends Command
                         MaximumCrawlDepthMiddleware::class,
                         ['maxCrawlDepth' => $clickCount + 1],
                     ],
+                ],
+                extensions:[
+                    LoggerExtension::class,
                 ],
             ),
         );

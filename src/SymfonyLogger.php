@@ -3,10 +3,11 @@
 namespace RamyHerrira\Wikilinks;
 
 use Psr\Log\AbstractLogger;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 
-class Logger extends AbstractLogger
+class SymfonyLogger extends AbstractLogger
 {
-    public function __construct(protected $logger) {}
+    public function __construct(protected ConsoleOutputInterface $logger) {}
 
     /**
      * Logs with an arbitrary level.
@@ -21,6 +22,6 @@ class Logger extends AbstractLogger
      */
     public function log($level, string|\Stringable $message, array $context = []): void
     {
-        $this->logger->log($level, $message, $context);
+        $this->logger->writeln("<info>**Hint**</info>: {$message}");
     }
 }
