@@ -15,13 +15,17 @@ class SearchSpider extends BasicSpider
             ->filter('#bodyContent p a[href^="/wiki/"]')
             ->links();
         $page = $pages[array_rand($pages)];
+        $title = $response->filter('#firstHeading > span, i')->text();
         $text = $response
             ->filter("#mw-content-text div p")
             ->extract(['_text']);
+        $description = empty(trim($text[0])) ? $text[1] : $text[0];
+        $description = preg_replace("/$title/i", str_repeat('*', strlen($title)), $description);
+
 
         yield $this->item([
-            'title' => $response->filter('#firstHeading > span, i')->text(),
-            'description' => empty(trim($text[0])) ? $text[1] : $text[0],
+            'title' => $title,
+            'description' => $description,
             'url' => $response->getUri(),
         ]);
 

@@ -36,28 +36,27 @@ class GuessCommand extends Command
         $articleA = $this->fetchArticleA($output);
 
         $confirmationQuestion = new ConfirmationQuestion(
-            "<question>Do you want to starting with this article ?</question>\n\n>",
+            "<question>Do you want to starting with this article ?</question> ",
             false
         );
 
         while (! $helper->ask($input, $output, $confirmationQuestion)) {
             $articleA = $this->fetchArticleA($output);
         }
-        $output->writeln("<comment>Description</comment>:\n{$articleA->getDescription()}");
-
-        $output->writeln("\n========================================\n\n\n");
+        // $output->writeln("<comment>Description</comment>:\n{$articleA->getDescription()}");
+        $output->writeln("=======================================================\n");
 
 
         $output->writeln("<comment>Searching for the B article...</comment>\n\n");
 
         $articleB = $this->crawlForARandomArtcle($articleA, $clickCount = 2);
 
-        $output->writeln("\n\n\n========================================\n");
+        $output->writeln("=======================================================\n\n\n");
 
         $titleB = $articleB->getTitle();
         $urlB = $articleB->getUrl();
         $output->writeln("<info>Article B</info>: <href=$urlB>$titleB</>");
-        $output->writeln("<comment>Description</comment>:\n{$articleB->getDescription()}");
+        // $output->writeln("<comment>Description</comment>:\n{$articleB->getDescription()}");
 
         $output->writeln("\n===================Try to make in {$clickCount} tries==============");
         $output->writeln("=======================================================\n\n\n");
