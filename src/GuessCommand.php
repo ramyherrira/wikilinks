@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(name: 'guess')]
 class GuessCommand extends Command
@@ -30,8 +31,10 @@ class GuessCommand extends Command
     {
         /** @var QuestionHelper */
         $helper = $this->getHelper('question');
+        $io = new SymfonyStyle($input, $output);
 
-        $output->writeln('Wikilinks starting...');
+        // $output->writeln('Wikilinks starting...');
+        $io->caution('Wikilinks starting...');
 
         $articleA = $this->fetchArticleA($output);
 
@@ -73,16 +76,14 @@ class GuessCommand extends Command
             $link = $this->askForWhichArticle($helper, $input, $output, $links);
         }
 
-        $output->writeln("\n\n=================================================");
-        $output->writeln("\n\n=============Congratulations you won !===========\n\n\n");
-        $output->writeln("=================================================\n\n\n");
-
+        $io->success('Congratulations you won !');
 
         return Command::SUCCESS;
     }
 
     protected function askForWhichArticle($helper, $input, $output, $links): string
     {
+        sort($links);
         $choiceQuestion = new ChoiceQuestion(
             'Choose from which article to go ?',
             $links,

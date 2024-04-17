@@ -25,6 +25,7 @@ class WikiParser
         ]);
     }
 
+    /** @return array<string> */
     public function listArticles($url): array
     {
         $response = $this->getClient()->get($url);
